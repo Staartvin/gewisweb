@@ -98,7 +98,6 @@ class Module
                 },
                 'company_admin_edit_company_form' => function ($sm) {
                     return new \Company\Form\EditCompany(
-                        $sm->get('company_mapper_company'),
                         $sm->get('translator')
                     );
                 },
