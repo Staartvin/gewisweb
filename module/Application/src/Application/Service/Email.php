@@ -19,7 +19,7 @@ class Email extends AbstractService
 
     protected $queue;
 
-    public function __construct(QueueInterface $queue)
+    public function setQueue(QueueInterface $queue)
     {
         $this->queue = $queue;
     }
@@ -33,42 +33,44 @@ class Email extends AbstractService
      * @param $data array Variables that you want to have available in the template.
      * @param $inQueue boolean Whether this email should be put in the queue before sending or should immediately be sent.
      */
-    public function sendEmail($type, $view, $subject, $data, $inQueue = false)
+    public function sendEmail($type, $view, $subject, $data)
     {
-        if ($inQueue) {
-            // Put e-mail in the queue to be sent later
-            $job = new EmailJob();
+        // Send e-mail immediately
+        $body = $this->render($view, $data);
 
-            $job->setContent(array(
-                'type' => $type,
-                'view' => $view,
-                'subject' => $subject,
-                'data' => $data,
-                'emailService' => $this
-            ));
+        $html = new MimePart($body);
+        $html->type = "text/html";
 
-            $this->queue->push($job);
-        } else {
-            // Send e-mail immediately
-            $body = $this->render($view, $data);
+        $mimeMessage = new MimeMessage();
+        $mimeMessage->setParts([$html]);
 
-            $html = new MimePart($body);
-            $html->type = "text/html";
+        $message = new Message();
 
-            $mimeMessage = new MimeMessage();
-            $mimeMessage->setParts([$html]);
+        $config = $this->getConfig();
 
-            $message = new Message();
+        $message->addFrom($config['from']);
+        $message->addTo($config['to'][$type]);
+        $message->setSubject($subject);
+        $message->setBody($mimeMessage);
 
-            $config = $this->getConfig();
+        $this->getTransport()->send($message);
 
-            $message->addFrom($config['from']);
-            $message->addTo($config['to'][$type]);
-            $message->setSubject($subject);
-            $message->setBody($mimeMessage);
+    }
 
-            $this->getTransport()->send($message);
-        }
+    public function sendQueuedEmail($type, $view, $subject, $data)
+    {
+        // Put e-mail in the queue to be sent later
+        $job = new EmailJob();
+
+        $job->setContent(array(
+            'type' => $type,
+            'view' => $view,
+            'subject' => $subject,
+            'data' => $data,
+            'emailService' => $this
+        ));
+
+        $this->queue->push($job);
     }
 
 
@@ -119,26 +121,5 @@ class Email extends AbstractService
     {
         $config = $this->sm->get('config');
         return $config['email'];
-    }
-}
-
-class EmailJob extends AbstractJob
-{
-    /**
-     * Execute the job
-     *
-     * @return void
-     */
-    public function execute()
-    {
-        $payload = $this->getContent();
-
-        $type = $payload['type'];
-        $view = $payload['view'];
-        $subject = $payload['subject'];
-        $data = $payload['data'];
-        $emailService = $payload['emailService'];
-
-        $emailService.sendEmail($type, $view, $subject, $data, false);
     }
 }

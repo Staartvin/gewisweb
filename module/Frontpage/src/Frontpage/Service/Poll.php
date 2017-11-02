@@ -223,7 +223,7 @@ class Poll extends AbstractAclService
         $pollMapper->persist($poll);
         $pollMapper->flush();
 
-        $this->getEmailService()->sendEmail('poll_creation', 'email/poll',
+        $this->getEmailService()->sendQueuedEmail('poll_creation', 'email/poll',
             'Er is een nieuwe poll aangevraagd | A new poll has been requested', ['poll' => $poll]);
 
         return true;

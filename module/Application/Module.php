@@ -70,11 +70,25 @@ class Module
             'invokables' => [
                 'application_service_storage' => 'Application\Service\FileStorage',
                 'application_service_legacy' => 'Application\Service\Legacy',
-                'application_service_email' => 'Application\Service\Email'
             ],
             'factories' => [
                 'application_service_email' => function ($sm) {
+                    $emailService = new \Application\Service\Email();
 
+                    $queueManager = $sm->get('SlmQueue\Queue\QueuePluginManager');
+                    $queue        = $queueManager->get('defaultQueue');
+
+                    $emailService->setServiceManager($sm);
+                    $emailService->setQueue(queue);
+
+                    return $emailService;
+                },
+                'application_job_email' => function ($sm) {
+                    $emailJob = new \Application\Jobs\EmailJob();
+
+                    $emailJob->setServiceManager($sm);
+
+                    return $emailJob;
                 }
             ]
         ];
