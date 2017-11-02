@@ -2,17 +2,13 @@
 
 namespace Application\Service;
 
-use Application\Service\AbstractService;
-
-use User\Model\NewUser as NewUserModel;
-
-use Decision\Model\Member as MemberModel;
-
+use SlmQueue\Job\AbstractJob;
 use Zend\Mail\Message;
 use Zend\View\Model\ViewModel;
-use Activity\Model\Activity as ActivityModel;
 use Zend\Mime\Part as MimePart;
 use Zend\Mime\Message as MimeMessage;
+
+use SlmQueue\Queue\QueueInterface;
 
 /**
  * This service is used for sending emails.
@@ -21,6 +17,13 @@ use Zend\Mime\Message as MimeMessage;
 class Email extends AbstractService
 {
 
+    protected $queue;
+
+    public function __construct(QueueInterface $queue)
+    {
+        $this->queue = $queue;
+    }
+
     /**
      * Send an email.
      *
@@ -28,27 +31,44 @@ class Email extends AbstractService
      * @param $view String Template of the email
      * @param $subject String Subject of the email
      * @param $data array Variables that you want to have available in the template.
+     * @param $inQueue boolean Whether this email should be put in the queue before sending or should immediately be sent.
      */
-    public function sendEmail($type, $view, $subject, $data)
+    public function sendEmail($type, $view, $subject, $data, $inQueue = false)
     {
-        $body = $this->render($view, $data);
+        if ($inQueue) {
+            // Put e-mail in the queue to be sent later
+            $job = new EmailJob();
 
-        $html = new MimePart($body);
-        $html->type = "text/html";
+            $job->setContent(array(
+                'type' => $type,
+                'view' => $view,
+                'subject' => $subject,
+                'data' => $data,
+                'emailService' => $this
+            ));
 
-        $mimeMessage = new MimeMessage();
-        $mimeMessage->setParts([$html]);
+            $this->queue->push($job);
+        } else {
+            // Send e-mail immediately
+            $body = $this->render($view, $data);
 
-        $message = new Message();
+            $html = new MimePart($body);
+            $html->type = "text/html";
 
-        $config = $this->getConfig();
+            $mimeMessage = new MimeMessage();
+            $mimeMessage->setParts([$html]);
 
-        $message->addFrom($config['from']);
-        $message->addTo($config['to'][$type]);
-        $message->setSubject($subject);
-        $message->setBody($mimeMessage);
+            $message = new Message();
 
-        $this->getTransport()->send($message);
+            $config = $this->getConfig();
+
+            $message->addFrom($config['from']);
+            $message->addTo($config['to'][$type]);
+            $message->setSubject($subject);
+            $message->setBody($mimeMessage);
+
+            $this->getTransport()->send($message);
+        }
     }
 
 
@@ -99,5 +119,26 @@ class Email extends AbstractService
     {
         $config = $this->sm->get('config');
         return $config['email'];
+    }
+}
+
+class EmailJob extends AbstractJob
+{
+    /**
+     * Execute the job
+     *
+     * @return void
+     */
+    public function execute()
+    {
+        $payload = $this->getContent();
+
+        $type = $payload['type'];
+        $view = $payload['view'];
+        $subject = $payload['subject'];
+        $data = $payload['data'];
+        $emailService = $payload['emailService'];
+
+        $emailService.sendEmail($type, $view, $subject, $data, false);
     }
 }
