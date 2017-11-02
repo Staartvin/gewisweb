@@ -7,6 +7,7 @@ use Zend\Mail\Message;
 use Zend\View\Model\ViewModel;
 use Zend\Mime\Part as MimePart;
 use Zend\Mime\Message as MimeMessage;
+use Application\Jobs\EmailJob;
 
 use SlmQueue\Queue\QueueInterface;
 
@@ -67,7 +68,6 @@ class Email extends AbstractService
             'view' => $view,
             'subject' => $subject,
             'data' => $data,
-            'emailService' => $this
         ));
 
         $this->queue->push($job);

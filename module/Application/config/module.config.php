@@ -82,4 +82,18 @@ return [
             'featuredCompanyPackage' => 'Application\View\Helper\FeaturedCompanyPackage'
         ],
     ],
+    'doctrine' => [
+        'driver' => [
+            'application_entities' => [
+                'class' => 'Doctrine\ORM\Mapping\Driver\AnnotationDriver',
+                'cache' => 'array',
+                'paths' => [__DIR__.'/../src/Application/Model/'],
+            ],
+            'orm_default' => [
+                'drivers' => [
+                    'Application\Model' => 'application_entities',
+                ],
+            ],
+        ],
+    ],
 ];

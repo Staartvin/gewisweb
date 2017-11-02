@@ -9,6 +9,7 @@
 
 namespace Application;
 
+use SlmQueue\Queue\QueuePluginManager;
 use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
 use Zend\Session\Container as SessionContainer;
@@ -79,16 +80,9 @@ class Module
                     $queue        = $queueManager->get('defaultQueue');
 
                     $emailService->setServiceManager($sm);
-                    $emailService->setQueue(queue);
+                    $emailService->setQueue($queue);
 
                     return $emailService;
-                },
-                'application_job_email' => function ($sm) {
-                    $emailJob = new \Application\Jobs\EmailJob();
-
-                    $emailJob->setServiceManager($sm);
-
-                    return $emailJob;
                 }
             ]
         ];

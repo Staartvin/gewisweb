@@ -9,7 +9,7 @@ return array(
         ),
         'job_manager' => array(
             'factories' => array(
-                'Applications\Jobs\EmailJob' => 'application_job_email'
+                'Application\Jobs\EmailJob' => 'Application\Factory\EmailJobFactory'
             )
         )
     )
