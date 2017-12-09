@@ -121,15 +121,19 @@ class Module
                     $acl->addResource('album');
                     $acl->addResource('tag');
 
-                    // Guests are allowed to view photos and albums
-                    $acl->allow('guest', 'photo', 'view');
-                    $acl->allow('guest', 'album', 'view');
+                    // Only users are allowed to view photos and albums
+                    $acl->allow('user', 'photo', 'view');
+                    $acl->allow('user', 'album', 'view');
 
                     // Users are allowed to view, remove and add tags
                     $acl->allow('user', 'tag', ['view', 'add', 'remove']);
 
                     // Users are allowed to download photos
                     $acl->allow('user', 'photo', ['download', 'view_metadata']);
+
+                    $acl->allow('photo_guest', 'photo', 'view');
+                    $acl->allow('photo_guest', 'album', 'view');
+                    $acl->allow('photo_guest', 'photo', ['download', 'view_metadata']);
 
                     return $acl;
                 },

@@ -38,7 +38,19 @@ return [
                             ]
                         ],
                     ],
-					'signoff' => [
+                    'externalSignup' => [
+                        'type' => 'Segment',
+                        'options' => [
+                            'route' => '/externalSignup/:id',
+                            'constraints' => [
+                                'actions' => '[0-9]*',
+                            ],
+                            'defaults' => [
+                                'action' => 'externalSignup'
+                            ],
+                        ],
+                    ],
+                    'signoff' => [
                         'type'    => 'Segment',
                         'options' => [
                             'route'    => '/signoff/[:id]',
@@ -59,6 +71,16 @@ return [
                             ]
                         ]
                     ],
+                    'career' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route' => '/career',
+                            'defaults' => [
+                                'action' => 'index',
+                                'category' => 'career'
+                            ]
+                        ]
+                    ],
                     'touch' => [
                         'type' => 'Literal',
                         'options' => [
@@ -67,6 +89,28 @@ return [
                                 'action' => 'touch'
                             ]
                         ]
+                    ],
+                    'archive' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route' => '/archive',
+                            'defaults' => [
+                                'action' => 'archive'
+                            ]
+                        ]
+                    ],
+                    // Route for categorizing activities by association year.
+                    'year' => [
+                        'type' => 'Segment',
+                        'options' => [
+                            'route' => '/archive[/:year]',
+                            'constraints' => [
+                                'year' => '\d{4}',
+                            ],
+                            'defaults' => [
+                                'action' => 'archive',
+                            ],
+                        ],
                     ],
                 ],
                 'priority' => 100
