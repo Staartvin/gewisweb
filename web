@@ -2,6 +2,8 @@
 <?php
 define('APP_ENV', getenv('APP_ENV') ?: 'production');
 
+date_default_timezone_set('Europe/Amsterdam');
+
 if (php_sapi_name() != 'cli') {
     throw new RuntimeException("This script can only be called from the command line.");
 }
